@@ -45,3 +45,20 @@ class Order(BaseModel):
 
 class ItemOrderNo(BaseModel):
     orders_no:list[int]
+
+class OrderRequest(BaseModel):
+    pin : str
+    symbol: str
+    side: str
+    position: str
+    price_type: str
+    price: float
+    volume: int
+    validity_type: str
+    # iceberg_vol: int
+    # validity_date_condition: Optional[str] = None
+    # stop_condition: Optional[str] = None
+    # stop_symbol: Optional[str] = None
+    # stop_price: Optional[float] = None
+    # trigger_session: Optional[str] = None
+    # bypass_warning: bool

@@ -2,10 +2,11 @@ from fastapi import APIRouter,HTTPException,FastAPI
 from settrade_v2 import MarketRep,Investor
 from settrade_v2.errors import SettradeError
 from typing import Optional
+from datetime import datetime
 # from app.models.data_account import AccountInfo
 # from app.models.data_order import Order,ItemOrderNo
 from models.data_account import AccountInfo
-from models.data_order import Order,ItemOrderNo
+from models.data_order import Order,ItemOrderNo,OrderRequest
 from decouple import config
 import requests
 
@@ -244,3 +245,102 @@ def  Place_Trade_Report(symbol:str, position:str, price:float, volume:int, cpm:s
     except SettradeError as e:
         raise HTTPException(status_code=e.status_code,detail= e.args )
 # Place Trade Report ส่ง place trade report End
+
+def send_order_to_api(order_data):
+    # Simulate sending the order data to an API.
+    # In a real application, you would use your API client or library to send the data.
+    print("Sending order data to API:", order_data)
+
+
+@router.post("/place_order/")
+def place_order(account: str, order_request: OrderRequest):
+    try:
+        order_data = order_request.dict()
+        
+        # Handle conditions based on stop_condition
+        if order_data.get("stop_condition"):
+            valid_stop_conditions = [
+                'ASK_OR_HIGHER',
+                'ASK_OR_LOWER',
+                'BID_OR_HIGHER',
+                'BID_OR_LOWER',
+                'LAST_PAID_OR_HIGHER',
+                'LAST_PAID_OR_LOWER',
+                'SESSION'
+            ]
+            
+            if order_data["stop_condition"] == "SESSION":
+                if not order_data.get("trigger_session"):
+                    return {"error": "trigger_session is required for stop_condition 'SESSION'"}
+                
+                valid_trigger_sessions = [
+                    'Pre-Open1',
+                    'Open1',
+                    'Day',
+                    'Pre-Open2',
+                    'Open2',
+                    'Pre-Open0',
+                    'Open0'
+                ]
+                
+                if order_data["trigger_session"] not in valid_trigger_sessions:
+                    del order_data["trigger_session"]
+            elif order_data["stop_condition"] in valid_stop_conditions:
+                if order_data["stop_condition"].startswith("ASK") or order_data["stop_condition"].startswith("BID"):
+                    if not (order_data.get("stop_symbol") and order_data.get("stop_price")):
+                        return {"error": "stop_symbol and stop_price are required for price movement stop_condition"}
+            else:
+                # Invalid stop_condition value, omit it from the API request
+                del order_data["stop_condition"]
+        
+        deri = investor.Derivatives(account_no=account)
+        
+        api_order_data = {
+            "pin": order_data["pin"],
+            "symbol": order_data["symbol"],
+            "side": order_data["side"],
+            "position": order_data["position"],
+            "price_type": order_data["price_type"],
+            "price": order_data["price"],
+            "volume": order_data["volume"],
+            "validity_type": order_data["validity_type"],
+        }
+        
+        if order_data.get("validity_date_condition"):
+            try:
+                validity_date = datetime.strptime(order_data["validity_date_condition"], "%Y-%m-%d")
+                api_order_data["validity_date_condition"] = validity_date.date().isoformat()
+            except ValueError:
+                return {"error": "Invalid format for validity_date_condition. Expected format: yyyy-MM-dd"}
+        
+        if order_data.get("iceberg_vol"):
+            api_order_data["iceberg_vol"] = order_data["iceberg_vol"]
+        
+        if order_data.get("stop_condition"):
+            api_order_data["stop_condition"] = order_data["stop_condition"]
+        
+        if order_data.get("stop_symbol"):
+            api_order_data["stop_symbol"] = order_data["stop_symbol"]
+        
+        if order_data.get("stop_price"):
+            api_order_data["stop_price"] = order_data["stop_price"]
+        
+        if order_data.get("trigger_session"):
+            if order_data["trigger_session"] in valid_trigger_sessions:
+                api_order_data["trigger_session"] = order_data["trigger_session"]
+            else:
+                del order_data["trigger_session"]
+        
+        if order_data.get("bypass_warning"):
+            api_order_data["bypass_warning"] = order_data["bypass_warning"]
+        
+        place_order = deri.place_order(**api_order_data)
+        
+        if place_order:
+            return place_order
+    except SettradeError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.args)
+
+
+
+    
