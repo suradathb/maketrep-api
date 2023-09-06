@@ -7,9 +7,9 @@ import json
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# @app.get("/")
+# def read_root():
+#     return {"Hello": "World"}
 
 def config_router():
     app.include_router(maketaccount.router)
