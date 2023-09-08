@@ -62,3 +62,21 @@ class OrderRequest(BaseModel):
     # stop_price: Optional[float] = None
     # trigger_session: Optional[str] = None
     # bypass_warning: bool
+
+class ChangOrder(BaseModel):
+    order_no:int
+    new_price:Optional[float]|None = None
+    new_volume:Optional[int] |None = None
+    bypass_warning:Optional[bool] |None = None
+    new_account_no:Optional[str] | None = None
+
+class PlaceTradeReport(BaseModel):
+    symbol: str
+    position: str
+    price: float
+    volume: int
+    cpm: str
+    tr_type: str
+    buyer: Optional[str] | None = None
+    seller: Optional[str] | None = None
+    control_key: Optional[str] | None = None
