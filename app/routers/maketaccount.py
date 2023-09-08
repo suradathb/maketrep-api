@@ -53,26 +53,6 @@ def accountinfo(account: str, app_id_param: Optional[str] = None, app_secret_par
     except SettradeError as e:
         raise HTTPException(status_code=e.status_code, detail=e.args)
 # Get Account Info ดึงข้อมูล account information End
-     
-#  Get Order ดึงข้อมูล order โดยระบุ order number จาก derivatives object start
-@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}/order/{order}")
-def Get_Order_Investor(order:int,account:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
-    # If app_id_param and app_secret_param are provided in the request, update the global values
-    if app_id_param and app_secret_param:
-        change_credentials(app_id_param, app_secret_param)
-        
-    # Check if app_id and app_secret are available
-    if not app_id or not app_secret:
-        raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
-    try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        order_info_dist = deri.get_order(order_no=order)
-        if(order_info_dist):
-            return order_info_dist
-    except SettradeError as e:
-        raise HTTPException(status_code=e.status_code,detail= e.args ) 
-#  Get Order ดึงข้อมูล order โดยระบุ order number จาก derivatives object End
 
 # Get Portfolios ดึงข้อมูล portfolio (สัญญาที่เปิดอยู่) จาก derivatives object Start
 @router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/portfolios/{account}") 
@@ -80,7 +60,7 @@ def  Get_Portfolios(account:str,app_id_param: Optional[str] = None, app_secret_p
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -101,7 +81,7 @@ def Get_Order(account:str,order_no:int,app_id_param: Optional[str] = None, app_s
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -121,7 +101,7 @@ def  Get_Orders(account:str,app_id_param: Optional[str] = None, app_secret_param
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -141,7 +121,7 @@ def  Get_Orders_By_Account_Number(account:str,app_id_param: Optional[str] = None
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -161,7 +141,7 @@ def  Get_Trades(account:str,app_id_param: Optional[str] = None, app_secret_param
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -182,7 +162,7 @@ def Place_Order(account:str,data:OrderRequest,app_id_param: Optional[str] = None
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-        
+
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
@@ -343,7 +323,40 @@ def  Place_Trade_Report(account:str,report:PlaceTradeReport,app_id_param: Option
 # Place Trade Report ส่ง place trade report End
 
 
+@router.get('/maket_data')
+def Initialize_Maket_Data(account:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+    # If app_id_param and app_secret_param are provided in the request, update the global values
+    if app_id_param and app_secret_param:
+        change_credentials(app_id_param, app_secret_param)
+        
+    # Check if app_id and app_secret are available
+    if not app_id or not app_secret:
+        raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
+    try:
+        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = investor.MarketData()
+        # market = marketrep.MarketData()
+        market = deri
+        if(market):
+            return market._ctx
+    except SettradeError as e:
+        raise HTTPException(status_code=e.status_code,detail= e.args )
 
-
-
-    
+@router.get('/quote_symbol')
+def Get_Quote_Symbol(account:str,symbol:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+    # If app_id_param and app_secret_param are provided in the request, update the global values
+    if app_id_param and app_secret_param:
+        change_credentials(app_id_param, app_secret_param)
+        
+    # Check if app_id and app_secret are available
+    if not app_id or not app_secret:
+        raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
+    try:
+        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = investor.MarketData()
+        # market = marketrep.MarketData()
+        market = deri.get_quote_symbol(symbol)
+        if(market):
+            return market
+    except SettradeError as e:
+        raise HTTPException(status_code=e.status_code,detail= e.args )
