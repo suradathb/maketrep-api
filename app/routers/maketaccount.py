@@ -1,13 +1,14 @@
 from fastapi import APIRouter,HTTPException,FastAPI,Depends
-from settrade_v2 import MarketRep,Investor
+from settrade_v2 import MarketRep
 from settrade_v2.errors import SettradeError
 from typing import Optional
 from datetime import datetime
-from app.models.data_account import AccountInfo
-from app.models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
-# from models.data_account import AccountInfo
-# from models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
+# from app.models.data_account import AccountInfo
+# from app.models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
+from models.data_account import AccountInfo
+from models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
 import requests
+
 
 router = APIRouter(
     prefix='/api/kss/v3',
@@ -19,8 +20,8 @@ router = APIRouter(
 
 app_id = None
 app_secret = None
-broker_id = "SANDBOX"
-app_code = "SANDBOX"
+broker_id = "029"
+app_code = "TRADEREPORT"
 is_auto_queue=False
 
 # Function to change app_id and app_secret
@@ -29,11 +30,10 @@ def change_credentials(new_app_id, new_app_secret):
     app_id = new_app_id
     app_secret = new_app_secret
 
+
 # Get Account Info ดึงข้อมูล account information start 
 @router.get('/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}')
 def accountinfo(account: str, app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
-    global app_id, app_secret
-
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -44,10 +44,10 @@ def accountinfo(account: str, app_id_param: Optional[str] = None, app_secret_par
 
     # Your logic for using app_id and app_secret here
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        account_info_dict = deri.get_account_info()
-        account_info = AccountInfo(**account_info_dict)
+        mktrep  = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+        account_info  = deri.get_account_info(account_no= account)
+  
         if account_info:
             return account_info
     except SettradeError as e:
@@ -65,9 +65,10 @@ def  Get_Portfolios(account:str,app_id_param: Optional[str] = None, app_secret_p
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        portfolios = deri.get_portfolios()
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+        portfolios = deri.get_portfolios(account_no=account)
+
         if(portfolios):
             return portfolios
     except SettradeError as e:
@@ -324,7 +325,7 @@ def  Place_Trade_Report(account:str,report:PlaceTradeReport,app_id_param: Option
 
 
 @router.get('/maket_data')
-def Initialize_Maket_Data(account:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+def Initialize_Maket_Data(app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -333,12 +334,11 @@ def Initialize_Maket_Data(account:str,app_id_param: Optional[str] = None, app_se
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.MarketData()
-        # market = marketrep.MarketData()
-        market = deri
-        if(market):
-            return market._ctx
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.MarketData()
+
+        if(deri):
+            return deri._ctx
     except SettradeError as e:
         raise HTTPException(status_code=e.status_code,detail= e.args )
 
