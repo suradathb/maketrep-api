@@ -47,7 +47,7 @@ class ItemOrderNo(BaseModel):
     orders_no:list[int]
 
 class OrderRequest(BaseModel):
-    pin : str
+    account_no:str
     symbol: str
     side: str
     position: str
@@ -55,20 +55,21 @@ class OrderRequest(BaseModel):
     price: float
     volume: int
     validity_type: str
-    # iceberg_vol: int
-    # validity_date_condition: Optional[str] = None
-    # stop_condition: Optional[str] = None
-    # stop_symbol: Optional[str] = None
-    # stop_price: Optional[float] = None
-    # trigger_session: Optional[str] = None
-    # bypass_warning: bool
+    iceberg_vol: int
+    validity_date_condition: Optional[str] = None
+    stop_condition: Optional[str] = None
+    stop_symbol: Optional[str] = None
+    stop_price: Optional[float] = None
+    trigger_session: Optional[str] = None
+    bypass_warning: bool
 
 class ChangOrder(BaseModel):
+    account_no:str
     order_no:int
-    new_price:Optional[float]|None = None
-    new_volume:Optional[int] |None = None
-    bypass_warning:Optional[bool] |None = None
-    new_account_no:Optional[str] | None = None
+    new_price:Optional[float] = None
+    new_volume:Optional[int] = None
+    bypass_warning:Optional[bool] = None
+    new_account_no:Optional[str] = None
 
 class PlaceTradeReport(BaseModel):
     symbol: str
@@ -77,6 +78,6 @@ class PlaceTradeReport(BaseModel):
     volume: int
     cpm: str
     tr_type: str
-    buyer: Optional[str] | None = None
-    seller: Optional[str] | None = None
-    control_key: Optional[str] | None = None
+    buyer: Optional[str] = None
+    seller: Optional[str] = None
+    control_key: Optional[str] = None
