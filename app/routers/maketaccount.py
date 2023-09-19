@@ -32,7 +32,7 @@ def change_credentials(new_app_id, new_app_secret):
 
 
 # Get Account Info ดึงข้อมูล account information start 
-@router.get('/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}')
+@router.get('/accountinfo/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}')
 def accountinfo(account: str, app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
@@ -77,8 +77,8 @@ def  Get_Portfolios(account:str,app_id_param: Optional[str] = None, app_secret_p
 
 
 # Get Order ดึงข้อมูล order ตาม orderNo Start
-@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}/orderNo/{order_no}") 
-def Get_Order(account:str,order_no:int,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/orderNo/{order_no}") 
+def Get_Order(order_no:int,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -87,8 +87,8 @@ def Get_Order(account:str,order_no:int,app_id_param: Optional[str] = None, app_s
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
         order = deri.get_order(order_no=order_no)
         if(order):
             return order
@@ -97,8 +97,8 @@ def Get_Order(account:str,order_no:int,app_id_param: Optional[str] = None, app_s
 # Get Order ดึงข้อมูล order ตาม orderNo End
 
 # Get Orders ดึงข้อมูล order ทั้งหมด Start
-@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}") 
-def  Get_Orders(account:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/") 
+def  Get_Orders(app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -107,8 +107,8 @@ def  Get_Orders(account:str,app_id_param: Optional[str] = None, app_secret_param
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
         orders = deri.get_orders()
         if(orders):
             return orders
@@ -127,8 +127,8 @@ def  Get_Orders_By_Account_Number(account:str,app_id_param: Optional[str] = None
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
         order_list  = deri.get_orders_by_account_no(account_no=account)
         if(order_list):
             return order_list
@@ -147,9 +147,9 @@ def  Get_Trades(account:str,app_id_param: Optional[str] = None, app_secret_param
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        trade_list = deri.get_trades()
+        mktrep = MarketRep(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+        trade_list = deri.get_trades(account_no=account)
         if(trade_list):
             return trade_list
     except SettradeError as e:
@@ -159,7 +159,7 @@ def  Get_Trades(account:str,app_id_param: Optional[str] = None, app_secret_param
 # Place Order ส่ง/วาง order จากนั้นจะได้ order object กลับมา Start
 @router.post("/order") 
 # def Place_Order(account:str,account_no:str, symbol:str, side:str, position:str, price_type:str, price:float, volume:int, validity_type:str, iceberg_vol:int, validity_date_condition:str|None == None, stop_condition:str, stop_symbol:str, stop_price:float, trigger_session:str, bypass_warning:bool):
-def Place_Order(account:str,data:OrderRequest,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+def Place_Order(data:OrderRequest,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -168,61 +168,25 @@ def Place_Order(account:str,data:OrderRequest,app_id_param: Optional[str] = None
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        # doc_side = side
-        # positions = position
-        # price_types = price_type
-        # validity_types = validity_type
-        # if doc_side == "Long":
-        #     doc_side = "Long"
-        # elif doc_side == "Short":
-        #     doc_side = "Short"
-        # else:
-        #     return {"msg": "Error side values Possible values are Long And Short"}
-        
-        # if positions == "Open":
-        #     positions = "Open"
-        # elif positions == "Close":
-        #     positions = "Close"
-        # elif positions == "Auto":
-        #     positions = "Auto"
-        # else:
-        #     return {"msg": "Error Position values Possible values are Open,Close and Auto"}
-        
-        # if price_types == "Limit":
-        #     price_types = "Limit"
-        # elif price_types == "ATO":
-        #     price_types = "ATO"
-        # elif price_types == "MP-MTL":
-        #     price_types = "MP-MTL"
-        # elif price_types == "MP-MKT":
-        #     price_types = "MP-MKT"
-        # else:
-        #     return {"msg":" Error price_type values Possible values are Limit,ATO,MP-MTL and MP-MKT"}
-        
-        # if validity_types == "Day":
-        #     validity_types = "Day"
-        # elif validity_types == "FOK":
-        #     validity_types = "FOK"
-        # elif validity_types == "IOC":
-        #     validity_types = "IOC"
-        # elif validity_types == "Date":
-        #     validity_types = "Date"
-        # elif validity_types == "Cancel":
-        #     validity_types = "Cancel"
-        # else:
-        #     return {"msg": "Error price_type values Possible values are Day,FOK,IOC,Date and Cancel"}
-        
+        mktrep = MarketRep(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+    
         order = deri.place_order(
-                    symbol=data.symbol,
-                    price=data.price,
-                    volume=data.volume,
-                    side=data.side,
-                    position=data.position,
-                    pin=data.pin,
-                    price_type=data.price_type,
-                    validity_type=data.validity_type)
+            account_no = data.account_no,
+            symbol = data.symbol,
+            side = data.side,
+            position = data.position,
+            price_type = data.price_type,
+            price = data.price,
+            volume = data.volume,
+            validity_type = data.validity_type,
+            iceberg_vol = data.iceberg_vol,
+            validity_date_condition = data.validity_date_condition,
+            stop_condition = data.stop_condition,
+            stop_symbol = data.stop_symbol,
+            stop_price = data.stop_price,
+            trigger_session = data.trigger_session,
+            bypass_warning = data.bypass_warning)
         if(order):
             return order
     except SettradeError as e:
@@ -231,7 +195,7 @@ def Place_Order(account:str,data:OrderRequest,app_id_param: Optional[str] = None
 
 # Change Order  เปลี่ยนข้อมูล order ที่ส่งไปจาก place order Start
 @router.put('/changorder')
-def Chang_Order(account:str,body:ChangOrder,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+def Chang_Order(body:ChangOrder,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -240,10 +204,10 @@ def Chang_Order(account:str,body:ChangOrder,app_id_param: Optional[str] = None, 
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
+        mktrep = MarketRep(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
         chang_order = deri.change_order(
-            account_no=account,
+            account_no=body.account_no,
             order_no=body.order_no,
             new_price=body.new_price,
             new_volume=body.new_volume,
@@ -256,7 +220,7 @@ def Chang_Order(account:str,body:ChangOrder,app_id_param: Optional[str] = None, 
 
 # Cancel Order ยกเลิก order Start
 @router.put('/cancelorder')
-async def Cancel_Order(account: str,order:int,pin:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+async def Cancel_Order(account: str,order:int,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
       # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -265,9 +229,9 @@ async def Cancel_Order(account: str,order:int,pin:str,app_id_param: Optional[str
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        cancel_order = deri.cancel_order(order_no=order, pin=pin)
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+        cancel_order = deri.cancel_order(account_no=account,order_no=order)
         return {"msg":f"Cancel Order No {order} Success. And Doc Return Empty dictionary."}
     except SettradeError as e:
         raise HTTPException(status_code=e.status_code,detail= e.args )
@@ -275,7 +239,7 @@ async def Cancel_Order(account: str,order:int,pin:str,app_id_param: Optional[str
 
 # Cancel Orders ยกเลิก order มากกว่า 1 order Start
 @router.put('/cancelorders')
-async def Cancel_Orders(account: str,pin:str,orders_no:ItemOrderNo,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+async def Cancel_Orders(account: str,orders_no:ItemOrderNo,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -284,9 +248,9 @@ async def Cancel_Orders(account: str,pin:str,orders_no:ItemOrderNo,app_id_param:
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives(account_no=account)
-        cancel_orders = deri.cancel_orders(order_no_list=orders_no.orders_no, pin=pin)
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
+        cancel_orders = deri.cancel_orders(account_no=account,order_no_list=orders_no.orders_no)
         if(cancel_orders):
             return cancel_orders
     except SettradeError as e:
@@ -304,8 +268,8 @@ def  Place_Trade_Report(account:str,report:PlaceTradeReport,app_id_param: Option
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = MarketRep(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.Derivatives()
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.Derivatives()
         place_trade_report = deri.place_trade_report(
             buyer=report.buyer,
             seller= report.seller,
@@ -343,7 +307,7 @@ def Initialize_Maket_Data(app_id_param: Optional[str] = None, app_secret_param: 
         raise HTTPException(status_code=e.status_code,detail= e.args )
 
 @router.get('/quote_symbol')
-def Get_Quote_Symbol(account:str,symbol:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+def Get_Quote_Symbol(symbol:str,app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
@@ -352,8 +316,8 @@ def Get_Quote_Symbol(account:str,symbol:str,app_id_param: Optional[str] = None, 
     if not app_id or not app_secret:
         raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
-        investor = Investor(app_id=app_id, app_secret=app_secret, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
-        deri = investor.MarketData()
+        mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
+        deri = mktrep.MarketData()
         # market = marketrep.MarketData()
         market = deri.get_quote_symbol(symbol)
         if(market):
