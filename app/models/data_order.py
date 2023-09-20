@@ -48,14 +48,14 @@ class ItemOrderNo(BaseModel):
 
 class OrderRequest(BaseModel):
     account_no:str
-    symbol: str
-    side: str
-    position: str
-    price_type: str
-    price: float
-    volume: int
-    validity_type: str
-    iceberg_vol: int
+    symbol: str = None
+    side: str = None
+    position: str = None
+    price_type: str =   None
+    price: float = 0.0
+    volume: int = 0
+    validity_type: str = None
+    iceberg_vol: int = 0
     validity_date_condition: Optional[str] = None
     stop_condition: Optional[str] = None
     stop_symbol: Optional[str] = None

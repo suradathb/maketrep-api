@@ -3,11 +3,14 @@ from settrade_v2 import MarketRep
 from settrade_v2.errors import SettradeError
 from typing import Optional
 from datetime import datetime
-# from app.models.data_account import AccountInfo
-# from app.models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
-from models.data_account import AccountInfo
-from models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
+from app.models.data_account import AccountInfo
+from app.models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
+# from models.data_account import AccountInfo
+# from models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport
 import requests
+import os
+import logging
+
 
 
 router = APIRouter(
@@ -18,11 +21,22 @@ router = APIRouter(
     }}
 )
 
+# Create a global logger instance
+logger = logging.getLogger(__name__)
+# Configure the logger
+logging.basicConfig(
+    filename='app_log.txt',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 app_id = None
 app_secret = None
 broker_id = "029"
 app_code = "TRADEREPORT"
 is_auto_queue=False
+
+
 
 # Function to change app_id and app_secret
 def change_credentials(new_app_id, new_app_secret):
@@ -30,27 +44,37 @@ def change_credentials(new_app_id, new_app_secret):
     app_id = new_app_id
     app_secret = new_app_secret
 
+@router.get('/hello')
+def hello():
+    logger.info('Hello endpoint called')
+    return {'message': 'Hello, World!'}
 
 # Get Account Info ดึงข้อมูล account information start 
 @router.get('/accountinfo/app_ID/{app_id_param}/secret/{app_secret_param}/account/{account}')
 def accountinfo(account: str, app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+    try:
     # If app_id_param and app_secret_param are provided in the request, update the global values
-    if app_id_param and app_secret_param:
-        change_credentials(app_id_param, app_secret_param)
+        if app_id_param and app_secret_param:
+            change_credentials(app_id_param, app_secret_param)
+            logger.info(f"Updated app_id and app_secret to {app_id_param}, {app_secret_param}")
 
-    # Check if app_id and app_secret are available
-    if not app_id or not app_secret:
-        raise HTTPException(status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
+        # Check if app_id and app_secret are available
+        if not app_id or not app_secret:
+            error_msg = "App credentials are not set. Please provide app_id and app_secret."
+            logger.error(error_msg)
+            raise HTTPException(status_code=400, detail=error_msg)
 
     # Your logic for using app_id and app_secret here
-    try:
+    
         mktrep  = MarketRep(app_id=app_id_param, app_secret=app_secret_param, broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
         deri = mktrep.Derivatives()
         account_info  = deri.get_account_info(account_no= account)
   
         if account_info:
-            return account_info
+            logger.info(f"Successfully retrieved account info for account: {account} Data:{account_info}")
+            return account_info 
     except SettradeError as e:
+        logger.error(f"SettradeError occurred: {str(e)}")
         raise HTTPException(status_code=e.status_code, detail=e.args)
 # Get Account Info ดึงข้อมูล account information End
 
@@ -97,7 +121,7 @@ def Get_Order(order_no:int,app_id_param: Optional[str] = None, app_secret_param:
 # Get Order ดึงข้อมูล order ตาม orderNo End
 
 # Get Orders ดึงข้อมูล order ทั้งหมด Start
-@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}/") 
+@router.get("/app_ID/{app_id_param}/secret/{app_secret_param}") 
 def  Get_Orders(app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if app_id_param and app_secret_param:
