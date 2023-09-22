@@ -1,6 +1,7 @@
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
+from datetime import datetime
 from typing import Optional
 from fastapi import FastAPI
 
@@ -14,7 +15,12 @@ app = FastAPI()
 log_dir = 'logs'
 os.makedirs(log_dir, exist_ok=True)
 
-log_file = os.path.join(log_dir, 'app_log.log')
+# Get the current date as a string in the format YYYY-MM-DD
+current_date = datetime.now().strftime('%Y-%m-%d')
+
+# Define the log file name with the current date
+log_file = os.path.join(log_dir, f'app_log_{current_date}.log')
+
 
 # Create a custom handler for log rotation with custom file names
 class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
