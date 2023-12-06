@@ -79,10 +79,10 @@ class PlaceTradeReport(BaseModel):
     price: float
     volume: int
     cpm: str
-    tr_type: str
+    ty_type: str
     buyer: Optional[str] = None
-    seller: Optional[str] = None
-    control_key: Optional[str] = None
+    seller: Optional[str] = None 
+    control_key: Optional[int] = 0
 
 class PlaceTradeReportTest(BaseModel):
     symbol: str
@@ -90,7 +90,7 @@ class PlaceTradeReportTest(BaseModel):
     price: float
     volume: int
     cpm: str
-    tr_type: str
+    ty_type: str
     buyer: Optional[str] = None
     seller: Optional[str] = None
     control_key: Optional[str] = None

@@ -5,10 +5,10 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.models.data_account import AccountInfo
 from app.models.data_order import Order,ItemOrderNo,OrderRequest,ChangOrder,PlaceTradeReport,PlasOrders
-from app.routers.helpers import logger_in,logger_out,logger_error,logger_body,logger_Trade,logger_Trade_error
+from app.routers.helpers import logger_in,logger_out,logger_error,logger_body,logger_Trade,logger_Trade_error,logger_in_Trade_report
 # from models.data_account import AccountInfo
 # from models.data_order import Order, ItemOrderNo, OrderRequest, ChangOrder, PlaceTradeReport, PlasOrders
-# from routers.helpers import logger_in, logger_out, logger_error, logger_body, logger_Trade, logger_Trade_error
+# from routers.helpers import logger_in, logger_out, logger_error, logger_body, logger_Trade, logger_Trade_error, logger_in_Trade_report
 import requests
 
 
@@ -35,6 +35,7 @@ def change_credentials(new_app_id, new_app_secret):
     global app_id, app_secret
     app_id = new_app_id
     app_secret = new_app_secret
+    print(app_id, app_secret)
 
 
 # Get Account Info ดึงข้อมูล account information start
@@ -263,34 +264,34 @@ def Place_Order(app_id_param: Optional[str], app_secret_param: Optional[str], ic
         mktrep = MarketRep(app_id=app_id, app_secret=app_secret,
                            broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
         deri = mktrep.Derivatives()
-        order = deri.place_order(
-            account_no="119871-4",
-            symbol="KTCZ23",
-            side="Long",
-            position="Open",
-            price_type="Limit",
-            price=45.50,
-            volume=20,
-            stopCondition="ASK_OR_HIGHER",
-            triggerSession="Pre-Open1",
-            bypassWarning=True
-        )
         # order = deri.place_order(
-        #     account_no = data.account_no,
-        #     symbol = data.symbol,
-        #     side = data.side,
-        #     position = data.position,
-        #     price_type = data.price_type,
-        #     price = data.price,
-        #     volume = data.volume,
-        #     validity_type = data.validity_type,
-        #     iceberg_vol = data.iceberg_vol,
-        #     validity_date_condition = data.validity_date_condition,
-        #     stop_condition = data.stop_condition,
-        #     stop_symbol = data.stop_symbol,
-        #     stop_price = data.stop_price,
-        #     trigger_session = data.trigger_session,
-        #     bypass_warning = data.bypass_warning)
+        #     account_no="119871-4",
+        #     symbol="KTCZ23",
+        #     side="Long",
+        #     position="Open",
+        #     price_type="Limit",
+        #     price=45.50,
+        #     volume=20,
+        #     stopCondition="ASK_OR_HIGHER",
+        #     triggerSession="Pre-Open1",
+        #     bypassWarning=True
+        # )
+        order = deri.place_order(
+            account_no = data.account_no,
+            symbol = data.symbol,
+            side = data.side,
+            position = data.position,
+            price_type = data.price_type,
+            price = data.price,
+            volume = data.volume,
+            validity_type = data.validity_type,
+            iceberg_vol = data.iceberg_vol,
+            validity_date_condition = data.validity_date_condition,
+            stop_condition = data.stop_condition,
+            stop_symbol = data.stop_symbol,
+            stop_price = data.stop_price,
+            trigger_session = data.trigger_session,
+            bypass_warning = data.bypass_warning)
 
         if (order):
             fun = 'Ret_Place_Order'
@@ -414,39 +415,47 @@ async def Cancel_Orders(account: str, orders_no: ItemOrderNo, ic_code: str, code
 # Place Trade Report ส่ง place trade report Start
 
 
-@router.post("/trade_report")
-def Place_Trade_Report(account: str, ic_code: str, code_app: str, ord_no: str, report: PlaceTradeReport, app_id_param: Optional[str] = None, app_secret_param: Optional[str] = None):
+@router.post("/tradereport")
+def Place_Trade_Report(account: str, ic_code: str, code_app: str, ord_no: str, data_report: PlaceTradeReport, app_id_param: str, app_secret_param: str):
+
     # If app_id_param and app_secret_param are provided in the request, update the global values
+    if (data_report.seller == "None" or data_report.seller == "string" or data_report.seller == ""):
+        data_report.seller = None
+    if (data_report.control_key == "0"):
+        data_report.control_key = 0
+    if (data_report.buyer == "None" or data_report.buyer == "string" or data_report.buyer == "" ):
+        data_report.buyer = None
+
     if app_id_param and app_secret_param:
         change_credentials(app_id_param, app_secret_param)
-
+    
     # Check if app_id and app_secret are available
     if not app_id or not app_secret:
         raise HTTPException(
             status_code=400, detail="App credentials are not set. Please provide app_id and app_secret.")
     try:
         fun = 'Get_Place_Trade_Report'
-        url = f'/report'
-        info = logger_in(fun, ic_code, code_app, ord_no, url)
-
+        url = f'/tradereport'
+        info = logger_in_Trade_report(fun, ic_code, code_app, ord_no, url)
+    
         mktrep = MarketRep(app_id=app_id_param, app_secret=app_secret_param,
                            broker_id=broker_id, app_code=app_code, is_auto_queue=is_auto_queue)
         deri = mktrep.Derivatives()
         place_trade_report = deri.place_trade_report(
-            symbol=report.symbol,
-            position=report.position,
-            price=report.price,
-            volume=report.volume,
-            cpm=report.cpm,
-            tr_type=report.tr_type,
-            buyer=report.buyer,
-            seller=report.seller,
-            control_key=report.control_key
+            symbol=data_report.symbol,
+            position=data_report.position,
+            price=data_report.price,
+            volume=data_report.volume,
+            cpm=data_report.cpm,
+            ty_type=data_report.ty_type,
+            buyer=data_report.buyer,
+            seller=data_report.seller,
+            control_key=data_report.control_key
         )
         if (place_trade_report):
             fun = 'Set_Place_Trade_Report'
             Header = f'Header : {account},{app_id_param},{app_secret_param}'
-            Bodys = f'Bodys : { symbol:{report.symbol},position:{report.position},price:{report.price},volume:{report.volume},cpm:{report.cpm},tr_type:{report.tr_type},buyer:{report.buyer},seller:{report.seller},control_key:{report.control_key},Return:{place_trade_report} }'
+            Bodys = f'Bodys : symbol:{data_report.symbol},position:{data_report.position},price:{data_report.price},volume:{data_report.volume},cpm:{data_report.cpm},ty_type:{data_report.ty_type},buyer:{data_report.buyer},seller:{data_report.seller},control_key:{data_report.control_key},Return:{place_trade_report}'
             info = logger_Trade(fun, ic_code, code_app, ord_no, Header, Bodys)
             return place_trade_report
     except SettradeError as e:
@@ -584,7 +593,7 @@ def Get_Quote_Symbol(symbol: str, app_id_param: Optional[str] = None, app_secret
 #     app_secret_param = "MyGrJMt7Crmnly1WU8ce8E4n3CMUJ+Psxl04q1xl8eo="
 #     ic_code = "IC_Test"
 #     code_app = "Mobile"
-#     ord_no ="oo01"
+#     ord_no = "oo01"
 #     # If app_id_param and app_secret_param are provided in the request, update the global values
 #     if app_id_param and app_secret_param:
 #         change_credentials(app_id_param, app_secret_param)
@@ -608,8 +617,8 @@ def Get_Quote_Symbol(symbol: str, app_id_param: Optional[str] = None, app_secret
 #             cpm="0029",
 #             ty_type="TX SET50 Futures",
 #             buyer="207329-4",
-#             seller="119871-4",
-#             control_key=None
+#             seller=None,
+#             control_key=0
 #         )
 #         if (place_trade_report):
 #             fun = 'Set_Place_Trade_Report'
@@ -621,6 +630,6 @@ def Get_Quote_Symbol(symbol: str, app_id_param: Optional[str] = None, app_secret
 #         fun = 'Error_Place_Trade_Report'
 #         errorvalue = f'Error : {str(e.status_code)} ,detail: {str(e.args)}'
 #         info = logger_Trade_error(fun, ic_code, code_app, ord_no, errorvalue)
-#         print(e.status_code,e.args)
+#         print(e.status_code, e.args)
 #         raise HTTPException(status_code=e.status_code, detail=e.args)
-# # Place Trade Report ส่ง place trade report End
+# Place Trade Report ส่ง place trade report End

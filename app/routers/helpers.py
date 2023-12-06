@@ -88,6 +88,8 @@ def logger_Trade_error(fun:str,ic_code:str,app_code:str,ord_no:str,errorvalue:Op
     # Logic to retrieve Error information
     logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{errorvalue}")')
 
-
+def logger_in_Trade_report(fun:str,ic_code:str,app_code:str,ord_no:Optional[str] = None,url:Optional[str] = None):
+    # Logic to retrieve Input information
+    logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{url}")')
 
 
