@@ -1,7 +1,7 @@
 # models/data_item.py
 from pydantic import BaseModel
 from datetime import date,datetime ,time ,timedelta
-from typing import Optional
+from typing import Optional,List, Dict, Union,Any
 
 class Order(BaseModel):
     accountNo: str
@@ -43,25 +43,27 @@ class Order(BaseModel):
     validity: str
     version: int
 
+class PlasOrders(BaseModel):
+    names: List[str]
 class ItemOrderNo(BaseModel):
     orders_no:list[int]
 
 class OrderRequest(BaseModel):
     account_no:str
-    symbol: str = None
-    side: str = None
-    position: str = None
-    price_type: str =   None
-    price: float = 0.0
-    volume: int = 0
-    validity_type: str = None
+    symbol: str 
+    side: str 
+    position: str
+    price_type: str 
+    price: float 
+    volume: int 
+    validity_type: str = "Day"
     iceberg_vol: int = 0
     validity_date_condition: Optional[str] = None
     stop_condition: Optional[str] = None
     stop_symbol: Optional[str] = None
     stop_price: Optional[float] = None
     trigger_session: Optional[str] = None
-    bypass_warning: bool
+    bypass_warning: bool = False
 
 class ChangOrder(BaseModel):
     account_no:str
@@ -72,6 +74,17 @@ class ChangOrder(BaseModel):
     new_account_no:Optional[str] = None
 
 class PlaceTradeReport(BaseModel):
+    symbol: str
+    position: str
+    price: float
+    volume: int
+    cpm: str
+    tr_type: str
+    buyer: Optional[str] = None
+    seller: Optional[str] = None
+    control_key: Optional[str] = None
+
+class PlaceTradeReportTest(BaseModel):
     symbol: str
     position: str
     price: float
