@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 # 
 COPY ./app /code/app
 
+COPY ./settradesdkv2_config.txt /root/settradesdkv2_config.txt
+
 # Expose the desired port
 EXPOSE 3000
 
