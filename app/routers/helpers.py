@@ -84,12 +84,13 @@ def logger_Trade(fun:str,ic_code:str,app_code:str,ord_no:str,value_info:Optional
     # Logic to retrieve Error information
     logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{value_info}","{body_value}")')
 
-def logger_Trade_error(fun:str,ic_code:str,app_code:str,ord_no:str,errorvalue:Optional[str] = None) ->None:
+def logger_Trade_error(fun:str,ic_code:str,app_code:str,ord_no:str,sendingHead:Optional[str],sendingBody:Optional[str],errorvalue:Optional[str] = None) ->None:
     # Logic to retrieve Error information
-    logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{errorvalue}")')
+    logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{sendingHead}","{sendingBody}","{errorvalue}")')
 
 def logger_in_Trade_report(fun:str,ic_code:str,app_code:str,ord_no:Optional[str] = None,url:Optional[str] = None):
     # Logic to retrieve Input information
     logger.info(f'{fun}("{ic_code}","{app_code}","{ord_no}","{url}")')
+
 
 

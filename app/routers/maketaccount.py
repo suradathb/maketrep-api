@@ -417,7 +417,6 @@ async def Cancel_Orders(account: str, orders_no: ItemOrderNo, ic_code: str, code
 
 @router.post("/tradereport")
 def Place_Trade_Report(account: str, ic_code: str, code_app: str, ord_no: str, data_report: PlaceTradeReport, app_id_param: str, app_secret_param: str):
-
     # If app_id_param and app_secret_param are provided in the request, update the global values
     if (data_report.seller == "None" or data_report.seller == "string" or data_report.seller == ""):
         data_report.seller = None
@@ -460,8 +459,10 @@ def Place_Trade_Report(account: str, ic_code: str, code_app: str, ord_no: str, d
             return place_trade_report
     except SettradeError as e:
         fun = 'Error_Place_Trade_Report'
+        errorHeader = f'Header : {account},{app_id_param},{app_secret_param}'
+        errorBody = f'Bodys : symbol:{data_report.symbol},position:{data_report.position},price:{data_report.price},volume:{data_report.volume},cpm:{data_report.cpm},ty_type:{data_report.ty_type},buyer:{data_report.buyer},seller:{data_report.seller},control_key:{data_report.control_key}'
         errorvalue = f'Error : {str(e.status_code)} ,detail: {str(e.args)}'
-        info = logger_Trade_error(fun, ic_code, code_app, ord_no, errorvalue)
+        info = logger_Trade_error(fun, ic_code, code_app, ord_no,errorHeader,errorBody, errorvalue)
         raise HTTPException(status_code=e.status_code, detail=e.args)
 # Place Trade Report ส่ง place trade report End
 
